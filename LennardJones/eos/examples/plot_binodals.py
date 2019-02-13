@@ -6,9 +6,9 @@
 # (3) with the Kolafa-Nezbevda parametric fit to the Molecular Dynamics and Monte Carlo data
 
 import pylab as pl
-from liquidpy.eos.LennardJones import percus_yevick as py
-from liquidpy.eos.LennardJones import carnahan_starling as cs
-from liquidpy.eos.LennardJones import kolafa_nezbevda as kn
+from liquidpy.LennardJones.eos import percus_yevick as py
+from liquidpy.LennardJones.eos import carnahan_starling as cs
+from liquidpy.LennardJones.eos import kolafa_nezbevda as kn
 
 
 epsilon = 1.0
