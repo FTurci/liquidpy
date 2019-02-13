@@ -4,53 +4,24 @@
 import numpy as np
 import scipy.integrate as integrate
 from scipy.optimize import fsolve
-import matplotlib.pyplot as pl
-import warnings
+import pylab as pl
 from scipy.interpolate import UnivariateSpline
 
 
-def volume_fraction(rho, sigma):
-		return np.pi/6*sigma**3*rho
+class baseEOS:
+	"""Basic class for equations of state"""
+	def __init__(self, args):
+		super(baseEOS, self).__init__()
+		self.args= args
 
-class WhiteBearEOS(object):
-	"""Computing the Lennard-Jones chemical potential, pressure and binodal within the Carnahan-Starling approximation."""
-	def __init__(self, sigma, epsilon,rcut,infinity=100):
-		super(WhiteBearEOS, self).__init__()
-		self.sigma = sigma
-		self.epsilon = epsilon
-		self.rcut= rcut
-		self.infinity = infinity*rcut
-
-		self.integral_att = self.get_integral_att()
-	
 	def Vatt(self,r,rcut):
-		"""Attractive part of the potential"""
-		rmin = 2**(1./6.)*self.sigma 
-		value = 4 *self.epsilon*( (self.sigma/r)**12-(self.sigma/r)**6)
-		if r<rmin :
-			return  - self.epsilon
-		elif r>rcut:
-			return 0
-		return value
-
-
-	def mu_CS(self,rho,T):
-		"""Carnahan-Starling approximation for the hard-sphere chemical potential."""
-		eta = volume_fraction(rho,self.sigma)
-		return T*(np.log(rho)+(8*eta-9*eta**2+3*eta**3)/(1-eta)**3 )
-
-	def p_CS(self,rho,T):
-		"""Carnahan-Starling approximation for the hard-sphere pressure."""
-		eta = volume_fraction(rho,self.sigma)
-		return T*rho*(1+eta+eta**2-eta**3)/(1-eta)**3
+		raise NotImplementedError
 
 	def get_mu(self,rho,T):
-		"""Hard-sphere chemical potential plus the integral over the attractive contribution."""
-		return self.mu_CS(rho,T)+4*np.pi*rho*self.integral_att
+		raise NotImplementedError
 
 	def get_p(self, rho,T):
-		"""Hard-sphere pressure plus the integral over the attractive contribution."""
-		return self.p_CS(rho,T)+2*np.pi*rho**2*self.integral_att
+		raise NotImplementedError
 
 	def get_integral_att(self):
 		"""Integral over the attractive contribution of the  pair potential."""
@@ -106,14 +77,15 @@ class WhiteBearEOS(object):
 		self.binodal = result
 		return result
 
-	def plot_binodal(self, show=True, color="#0096ff"):
+	def plot_binodal(self, show=True, color="#0096ff", label=""):
 		"""Plot the binodal with dashed and continuous coloured lines."""
-		pl.plot(self.binodal['rho_vapor'],self.binodal['temperature'], '--', color=color)
-		pl.plot( self.binodal['rho_liquid'],self.binodal['temperature'],'-', color=color)
+		p1=pl.plot(self.binodal['rho_vapor'],self.binodal['temperature'], '--', color=color)
+		p2=pl.plot( self.binodal['rho_liquid'],self.binodal['temperature'],'-', color=color,label=label)
 		pl.xlabel(r"$\rho^*$")
 		pl.ylabel(r"$T^*$")
 		if show:
 			pl.show()
+		return p1,p2
 
 	def get_binodal_densities(self,T):
 		"""Get the coexistence densities for a given temperature."""
@@ -144,5 +116,3 @@ class WhiteBearEOS(object):
 			order = np.argsort(self.binodal['rho_liquid'])
 			spline = UnivariateSpline(self.binodal['rho_liquid'][order],self.binodal['temperature'][order],s=0 )
 		return spline(rho)+0.0
-
-
